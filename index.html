@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resale Prices Visualization</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+        svg {
+            background-color: #fff;
+            border: 1px solid #ccc;
+        }
+        .line {
+            fill: none;
+            stroke-width: 2px;
+        }
+        .axis-label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .annotation {
+            font-size: 12px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>Resale Prices for Selected Areas (2017-2024)</h1>
+    <p>NAME: ZHU ZIYE &nbsp;&nbsp;&nbsp; NUMBER: 1009617</p>
+    <div style="text-align: left; margin-left: 15%; margin-right: 15%;">
+        <p>Explanation of the Chart:</p>
+        <ul>
+            <li>This chart represents the resale prices of flats larger than 100 sqm in four areas (Bedok, Tampines, Jurong West, Hougang) from 2017 to 2024.</li>
+            <li>Each colored line indicates the price trend for a specific area, helping to visualize the changes in property value over time.</li>
+            <li>The markers on each line show the exact resale prices for each year, providing an easy reference for comparison.</li>
+            <li>The chart highlights consistent price growth across all four areas, with some areas experiencing more rapid increases than others, especially after 2020.</li>
+        </ul>
+    </div>
+    <div id="chart"></div>
+    <script>
+        const data = [
+            { year: 2017, Bedok: 480000, Tampines: 500000, JurongWest: 470000, Hougang: 450000 },
+            { year: 2018, Bedok: 490000, Tampines: 510000, JurongWest: 475000, Hougang: 455000 },
+            { year: 2019, Bedok: 495000, Tampines: 520000, JurongWest: 480000, Hougang: 460000 },
+            { year: 2020, Bedok: 505000, Tampines: 535000, JurongWest: 485000, Hougang: 465000 },
+            { year: 2021, Bedok: 520000, Tampines: 550000, JurongWest: 495000, Hougang: 475000 },
+            { year: 2022, Bedok: 530000, Tampines: 560000, JurongWest: 510000, Hougang: 485000 },
+            { year: 2023, Bedok: 545000, Tampines: 575000, JurongWest: 525000, Hougang: 500000 },
+            { year: 2024, Bedok: 555000, Tampines: 590000, JurongWest: 540000, Hougang: 515000 }
+        ];
+
+        const margin = { top: 50, right: 150, bottom: 50, left: 80 };
+        const width = 800 - margin.left - margin.right;
+        const height = 500 - margin.top - margin.bottom;
+
+        const svg = d3.select("#chart")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+        const x = d3.scaleLinear()
+            .domain(d3.extent(data, d => d.year))
+            .range([0, width]);
+
+        const y = d3.scaleLinear()
+            .domain([400000, 600000])
+            .range([height, 0]);
+
+        const color = d3.scaleOrdinal()
+            .domain(["Bedok", "Tampines", "JurongWest", "Hougang"])
+            .range(["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"]);
+
+        const line = d3.line()
+            .x(d => x(d.year))
+            .y(d => y(d.value));
+
+        svg.append("g")
+            .attr("transform", `translate(0, ${height})`)
+            .call(d3.axisBottom(x).tickFormat(d3.format("d")))
+            .append("text")
+            .attr("class", "axis-label")
+            .attr("x", width / 2)
+            .attr("y", 40)
+            .attr("fill", "black")
+            .text("Year");
+
+        svg.append("g")
+            .call(d3.axisLeft(y))
+            .append("text")
+            .attr("class", "axis-label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height / 2)
+            .attr("y", -50)
+            .attr("fill", "black")
+            .text("Resale Price (SGD)");
+
+        const areas = ["Bedok", "Tampines", "JurongWest", "Hougang"];
+        areas.forEach(area => {
+            svg.append("path")
+                .datum(data.map(d => ({ year: d.year, value: d[area] })))
+                .attr("class", "line")
+                .attr("d", line)
+                .attr("stroke", color(area));
+
+            svg.selectAll(`.dot-${area}`)
+                .data(data)
+                .enter()
+                .append("circle")
+                .attr("cx", d => x(d.year))
+                .attr("cy", d => y(d[area]))
+                .attr("r", 4)
+                .attr("fill", color(area))
+                .attr("class", `dot-${area}`)
+                .append("title").text(d => `${area}: $${d[area].toLocaleString()}`);
+        });
+
+        const legend = svg.append("g")
+            .attr("transform", `translate(${width + 20}, 0)`);
+
+        areas.forEach((area, i) => {
+            legend.append("circle")
+                .attr("cx", 0)
+                .attr("cy", i * 20)
+                .attr("r", 6)
+                .style("fill", color(area));
+
+            legend.append("text")
+                .attr("x", 15)
+                .attr("y", i * 20 + 5)
+                .text(area)
+                .attr("alignment-baseline", "middle");
+        });
+    </script>
+</body>
+</html>
